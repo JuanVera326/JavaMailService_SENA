@@ -1,6 +1,7 @@
 package com.in.model;
 
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
@@ -14,7 +15,7 @@ public class ReadWordFiles {
 	
 	private Controller controller;
 
-	public String convertWordToHtml(String wordFilePath) throws IOException {
+	public String convertWordToHtml(String wordFilePath){
 		
 		StringBuilder contentBuilder = new StringBuilder();
 
@@ -27,7 +28,8 @@ public class ReadWordFiles {
                 }
                 contentBuilder.append("<br/>");
             }
-        }
+        } catch (FileNotFoundException e) { return e.getMessage();
+		} catch (IOException e) { return e.getMessage(); }
 
         return contentBuilder.toString();
     }

@@ -3,7 +3,9 @@ package com.in.views;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -34,6 +36,7 @@ import javax.swing.JEditorPane;
 public class View extends JFrame implements ActionListener{
 	
 	private static final long serialVersionUID = 1L;
+	private static final String EMAIL_REGEX = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
 	
 	private Controller controller;
 	private JPanel contentPane;
@@ -41,7 +44,7 @@ public class View extends JFrame implements ActionListener{
 	private JTextField correo_personal;
 	private JPasswordField clave_dinamica;
 	private JTextField correo_destinatario;
-	private JTextField textField;
+	private JTextField asunto_correos;
 	private JPanel panel_1;
 	private JLabel lblIngresaCorreoDestinatario;
 	private JLabel lblAsunto;
@@ -50,12 +53,16 @@ public class View extends JFrame implements ActionListener{
 	private JButton cleanUpBtn;
 	private JLabel lblTotalDests;
 	private JLabel lblTotalDestinatarios;
+	private JLabel lblTuSession;
 	private JEditorPane editorPane;
 	private JButton importWordPlantillaBtn;
 	private JScrollPane scrollPane;
 	private JButton configEmisorBtn;
 	private List<String> emails;
 	private String docPlantilla;
+	private String correo_Session;
+	private String password_Session;
+
 	
 	public View() {
 		
@@ -98,7 +105,7 @@ public class View extends JFrame implements ActionListener{
 		
 		configEmisorBtn = new JButton("Aceptar");
 		configEmisorBtn.setFont(new Font("Segoe UI", Font.PLAIN, 12));
-		configEmisorBtn.setBounds(390, 65, 89, 23);
+		configEmisorBtn.setBounds(390, 67, 89, 23);
 		panel.add(configEmisorBtn);
 		configEmisorBtn.addActionListener(this);
 		
@@ -108,15 +115,15 @@ public class View extends JFrame implements ActionListener{
 		lblTuSessionA.setBounds(49, 150, 149, 24);
 		panel.add(lblTuSessionA);
 		
-		JLabel lblTuSessionA_1 = new JLabel("");
-		lblTuSessionA_1.setForeground(new Color(57, 169, 0));
-		lblTuSessionA_1.setFont(new Font("Segoe UI", Font.BOLD, 13));
-		lblTuSessionA_1.setBounds(197, 150, 282, 24);
-		panel.add(lblTuSessionA_1);
+		lblTuSession = new JLabel("");
+		lblTuSession.setForeground(new Color(57, 169, 0));
+		lblTuSession.setFont(new Font("Segoe UI", Font.BOLD, 13));
+		lblTuSession.setBounds(197, 150, 282, 24);
+		panel.add(lblTuSession);
 		
 		JLabel lblNewLabel_1 = new JLabel("Configuración Remisión");
 		lblNewLabel_1.setFont(new Font("Segoe UI", Font.BOLD, 15));
-		lblNewLabel_1.setBounds(158, 11, 188, 24);
+		lblNewLabel_1.setBounds(170, 11, 188, 24);
 		panel.add(lblNewLabel_1);
 		
 		JLabel lblNewLabel_2 = new JLabel("----------------------------------------------------------------------------");
@@ -140,12 +147,12 @@ public class View extends JFrame implements ActionListener{
 		panel_1.add(correo_destinatario);
 		
 		correo_personal = new JTextField();
-		correo_personal.setBounds(197, 49, 149, 20);
+		correo_personal.setBounds(197, 49, 183, 20);
 		panel.add(correo_personal);
 		correo_personal.setColumns(10);
 		
 		clave_dinamica = new JPasswordField();
-		clave_dinamica.setBounds(197, 85, 149, 20);
+		clave_dinamica.setBounds(197, 85, 183, 20);
 		panel.add(clave_dinamica);
 		clave_dinamica.setText("");
 		panel.setEnabled(false);
@@ -161,10 +168,10 @@ public class View extends JFrame implements ActionListener{
 		lblAsunto.setBounds(10, 83, 96, 24);
 		panel_1.add(lblAsunto);
 		
-		textField = new JTextField();
-		textField.setColumns(10);
-		textField.setBounds(116, 86, 374, 20);
-		panel_1.add(textField);
+		asunto_correos = new JTextField();
+		asunto_correos.setColumns(10);
+		asunto_correos.setBounds(116, 86, 374, 20);
+		panel_1.add(asunto_correos);
 		
 		lblTotalDests = new JLabel("Total Dests: ");
 		lblTotalDests.setForeground(new Color(57, 169, 0));
@@ -206,7 +213,60 @@ public class View extends JFrame implements ActionListener{
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
+	public void actionPerformed(ActionEvent e){
+		
+		if ( e.getSource() == sendMailBtn ) {
+			System.out.println("Enviando Correo ->");
+			String bar = "";
+			for (int i = 0; i < 20; i++) {
+				bar += "->";
+				System.out.println(bar);
+			}
+			System.out.println(bar + " Enviado B)");
+		}
+		
+		if ( e.getSource() == configEmisorBtn ) {
+			
+			boolean val = (correo_personal.getText() != "") ? isValidEmail(correo_personal.getText()) : false;
+			
+			if (val) {
+				
+				correo_Session = correo_personal.getText();
+				char[] arr_key = clave_dinamica.getPassword();
+				
+				if (arr_key.length != 0) {
+					password_Session = new String(arr_key);
+				}else {
+					JOptionPane.showMessageDialog(null,"El campo de 'Clave Dinamica' No es Valido.","ERROR",JOptionPane.ERROR_MESSAGE);
+					correo_personal.setText("");
+					clave_dinamica.setText("");
+				}
+				
+				controller.setConfigSender(correo_Session,password_Session);
+				boolean connect = controller.testConnection();
+				
+				if (connect) {
+					JOptionPane.showMessageDialog(null,"Conexion Establecida!.","Succesfully",JOptionPane.INFORMATION_MESSAGE);
+					lblTuSession.setText(correo_Session);
+					correo_personal.setText("");
+					clave_dinamica.setText("");
+				}else {
+					JOptionPane.showMessageDialog(null,"Conexion no Establecida!.","ERROR",JOptionPane.ERROR_MESSAGE);
+					correo_personal.setText("");
+					clave_dinamica.setText("");
+					correo_Session = "";
+					password_Session = "";
+					lblTuSession.setText("");
+				}
+				
+			}else {
+				
+				JOptionPane.showMessageDialog(null,"El campo de 'Tu correo' No es Valido.","ERROR",JOptionPane.ERROR_MESSAGE);
+				correo_personal.setText("");
+				clave_dinamica.setText("");
+				
+			}
+		}
 		
 		if( e.getSource() == importExcelDestinatariosBtn ) {
 			
@@ -216,31 +276,50 @@ public class View extends JFrame implements ActionListener{
 			if (!!emails.isEmpty()) {
 				lblTotalDestinatarios.setText("Vacio");
 			}else {
-				if (emails.get(0).equals("Error al Importar.\nIntente cambiando el formato de celdas a texto en el Documento.")) {
-					JOptionPane.showMessageDialog(null, emails.get(0), "Error al Importar Documento", ERROR);
+				if (emails.get(0).equals("Err")) {
+					JOptionPane.showMessageDialog(null,"Error al Importar los Destinatarios.","ERROR",JOptionPane.ERROR_MESSAGE);
+					emails.clear();
 				}
 				lblTotalDestinatarios.setText(emails.size() + "");
 			}
 		}
+		
 		if ( e.getSource() == importWordPlantillaBtn ) {
 			
 			String path = controller.getFile(2);
 			
 			try {
+				
 				docPlantilla = controller.readWordFileHTML(path);
-			} catch (IOException e1) {
-				JOptionPane.showMessageDialog(null, emails.get(0), "Error al Importar Documento", ERROR);
-			}
-			
-			if (docPlantilla == null) {
-				editorPane.setText("Vacio!");
-				JOptionPane.showMessageDialog(null, emails.get(0), "Error al Importar Documento de Plantilla", ERROR);
-			}else {
-				editorPane.setText(docPlantilla);
-
+				if (docPlantilla == null) {
+					editorPane.setText("Vacio!");
+					JOptionPane.showMessageDialog(null,"Error al Importar la Plantilla.","ERROR",JOptionPane.ERROR_MESSAGE);
+				}else {
+					editorPane.setText(docPlantilla);
+				}
+				
+			} catch (Exception e2) {
+				JOptionPane.showMessageDialog(null,"Error al Importar la Plantilla.","ERROR",JOptionPane.ERROR_MESSAGE);
 			}
 		}
+
+		if ( e.getSource() == cleanUpBtn ) {
+			
+			clave_dinamica.setText("");
+			correo_personal.setText("");
+			correo_destinatario.setText("");
+			asunto_correos.setText("");
+			editorPane.setText("");
+			lblTuSession.setText("");
+			lblTotalDestinatarios.setText("");
+			
+		}
+		
 	}
+	
+	public boolean isValidEmail(String email) {
+        return Pattern.matches(EMAIL_REGEX, email);
+    }
 
 	public void setController(Controller controller) {
 		this.controller = controller;

@@ -46,8 +46,16 @@ public class Controller {
 		return readExcelFile.readExcelFileToEmails(path);
 	}
 
-	public String readWordFileHTML(String path) throws IOException {
+	public String readWordFileHTML(String path){
 		return readWordFiles.convertWordToHtml(path);
+	}
+
+	public void setConfigSender(String correo_Session, String password_Session) {
+		mailService.setConfigSender(correo_Session,password_Session);
+	}
+
+	public boolean testConnection() {
+		return mailService.testConnection();
 	}
 
 }

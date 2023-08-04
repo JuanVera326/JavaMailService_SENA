@@ -44,7 +44,7 @@ public class ReadExcelFile {
                 	
                     cell = cellIterator.next();
                     
-                    if (new String(cell.getStringCellValue()).equals("CORREO_E")) {
+                    if (new String(cell.getStringCellValue()).equalsIgnoreCase("CORREO_E")) {
                     	
                     	columnIndex = cell.getColumnIndex();
                     	rowIndex = cell.getRowIndex();
@@ -65,7 +65,7 @@ public class ReadExcelFile {
             book.close();
             
         } catch (Exception e) {
-            emailsList.add("Error al Importar.\nIntente cambiando el formato de celdas a texto en el Documento.");
+            emailsList.add("Err");
         }
         return emailsList;
     }
